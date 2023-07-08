@@ -2,7 +2,7 @@
   "name": "chatgpt-twitch-bot",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "chatgpt-twitch-bot.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,10 +10,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "chatgpt": "^2.5.0",
+    "chatgpt": "^4.4.1",
+    "cross-fetch": "^3.1.5",
     "dotenv": "^16.0.3",
+    "node-fetch": "^3.3.1",
+    "node-fetch-commonjs": "^3.2.4",
+    "ora": "^6.1.2",
     "puppeteer": "^19.4.1",
-    "tmi.js": "^1.8.5"
+    "tmi.js": "^1.8.5",
+    "ts-retry": "^4.1.1"
   },
   "devDependencies": {
     "@types/tmi.js": "^1.8.2"

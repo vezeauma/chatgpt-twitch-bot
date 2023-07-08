@@ -1,6 +1,8 @@
-import { ChatGPTAPI, getOpenAIAuth } from "chatgpt";
+import { ChatGPTAPI, ChatMessage } from "chatgpt";
 import tmi from "tmi.js";
 import dotenv from "dotenv";
+import { retry, retryAsync } from "ts-retry";
+
 dotenv.config();
 
 const client = new tmi.Client({
@@ -17,18 +19,20 @@ const client = new tmi.Client({
 });
 
 let chatGPTAPI: ChatGPTAPI;
+let result : ChatMessage;
+var active = true;
 
-(async () => {
-  const openAIAuth = await getOpenAIAuth({
-    email: process.env.OPENAI_EMAIL,
-    password: process.env.OPENAI_PASSWORD,
-  });
-
-  chatGPTAPI = new ChatGPTAPI({ ...openAIAuth });
-  await chatGPTAPI.ensureAuth();
+(async function () {
+  if (process.env.OPENAI_API_KEY) {
+    let api_gpt:string = process.env.OPENAI_API_KEY.toString()
+    
+    chatGPTAPI = new ChatGPTAPI({ apiKey: api_gpt });
+  }
 })();
 
+
 client.connect();
+
 
 client.on("message", async (channel, tags, message, self) => {
   if (self || !message.startsWith("!")) {
@@ -37,14 +41,33 @@ client.on("message", async (channel, tags, message, self) => {
 
   const args = message.slice(1).split(" ");
   const command = args.shift()?.toLowerCase();
+  const prompt = args.join(" ");
 
-  if (command === "chatgpt test") {
+  if (`${command} ${prompt}` ==`${process.env.COMMAND_NAME} test`) {
     client.say(channel, `@${tags.username}, test`);
-  } else if (command === "chatgpt") {
-    const prompt = args.join(" ");
+  } else if (command === `${process.env.COMMAND_NAME}`) {
+    if (active) {
+      // Do command stuff
 
-    const response = await chatGPTAPI.sendMessage(prompt);
-
-    client.say(channel, `@${tags.username}, ${response}`);
-  }
-});
+      const res = await retryAsync(
+        async () => {
+          if(result==null) {
+            result = await chatGPTAPI.sendMessage(prompt)
+          } else {
+            result = await chatGPTAPI.sendMessage(prompt,{parentMessageId: result.id})
+          }
+          client.say(channel, `@${tags.username}, ${result.text}`);
+          console.log(result)
+        },
+        { delay: 100, maxTry: 5 }
+      );
+      active = false;
+        setTimeout(() => {
+            active = true;
+        }, 30000);
+    } else {
+      // Do stuff if the command is in cooldown
+      client.say(channel, `@${tags.username} - Sorry, please wait 30 sec`);
+    }
+  } 
+})

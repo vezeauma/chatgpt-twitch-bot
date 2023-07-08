@@ -20,6 +20,7 @@ After installing the required packages you need to populate the environment file
 - TWITCH_NAME=
 - TWITCH_TOKEN=
 - TWITCH_CHANNEL=
+- COMMAND_NAME= 
 
 For the OPENAI Variables just put your credentials in, remember to log out from your browser before. For Twitch you can create an extra bot or connect from your main Account.
 You can get the TWITCH_TOKEN [here](https://twitchapps.com/tmi/)
